@@ -1,0 +1,403 @@
+/** TODO README
+ * - genres
+ */
+import 'dart:async';
+import 'dart:core';
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_spotify/main.dart';
+import 'package:logger/logger.dart';
+import 'package:spotify_sdk/models/connection_status.dart';
+import 'package:spotify_sdk/models/crossfade_state.dart';
+import 'package:spotify_sdk/models/image_uri.dart';
+// import 'package:spotify_sdk/models/player_context.dart';
+import 'package:spotify_sdk/models/player_state.dart';
+import 'package:spotify_sdk/spotify_sdk.dart';
+//import 'package:spotify_sdk/spotify_sdk_web.dart';
+//import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+//import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+
+import 'package:flutter_spotify/widgets/sized_icon_button.dart';
+// import 'dart:developer' as developer;
+//import 'package:spotify_sdk_example/widgets/loader.dart';
+//import 'package:spotify_sdk_example/widgets/overlay.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_spotify/theme.dart';
+
+class PlayerScreen extends StatefulWidget {
+  const PlayerScreen({Key? key}) : super(key: key);
+
+  @override
+  _PlayerScreenState createState() => _PlayerScreenState();
+}
+
+class _PlayerScreenState extends State<PlayerScreen> {
+  final _logger = StateContainer.of(context)!._logger;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: const Text('Spotify OverControl'),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+            );
+          },
+        ),
+        actions: [
+          _connected
+              ? IconButton(
+                  onPressed: disconnect,
+                  icon: const Icon(Icons.exit_to_app),
+                )
+              : IconButton(
+                  onPressed: getAuthenticationToken,
+                  icon: const Icon(Icons.account_circle),
+                ),
+          IconButton(
+            onPressed: connectToSpotifyRemote,
+            icon: Icon(Icons.wifi),
+          ),
+        ],
+      ),
+      body: _sampleFlowWidget(context),
+      floatingActionButton:
+          FloatingActionButton(child: const Icon(Icons.add), onPressed: () {}),
+    );
+  }
+
+  Future<void> disconnect() async {
+    try {
+      setState(() {
+        _loading = true;
+      });
+      var result = await SpotifySdk.disconnect();
+      setStatus(result ? 'disconnect successful' : 'disconnect failed');
+      setState(() {
+        _loading = false;
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _loading = false;
+      });
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setState(() {
+        _loading = false;
+      });
+      setStatus('not implemented');
+    }
+  }
+
+  Widget spotifyImageWidget() {
+    return FutureBuilder(
+        future: SpotifySdk.getImage(
+          imageUri: ImageUri(
+              'spotify:image:ab67616d0000b2736b4f6358fbf795b568e7952d'),
+          dimension: ImageDimension.large,
+        ),
+        builder: (BuildContext context, AsyncSnapshot<Uint8List?> snapshot) {
+          if (snapshot.hasData) {
+            return Image.memory(snapshot.data!);
+          } else if (snapshot.hasError) {
+            setStatus(snapshot.error.toString());
+            return SizedBox(
+              width: ImageDimension.large.value.toDouble(),
+              height: ImageDimension.large.value.toDouble(),
+              child: const Center(child: Text('Error getting image')),
+            );
+          } else {
+            return SizedBox(
+              width: ImageDimension.large.value.toDouble(),
+              height: ImageDimension.large.value.toDouble(),
+              child: const Center(child: Text('Getting image...')),
+            );
+          }
+        });
+  }
+
+  Future<void> connectToSpotifyRemote() async {
+    try {
+      setState(() {
+        _loading = true;
+      });
+
+      var result = await SpotifySdk.connectToSpotifyRemote(
+        clientId: dotenv.env['CLIENT_ID'].toString(),
+        redirectUrl: dotenv.env['REDIRECT_URL'].toString(),
+        //TODO accessToken
+      );
+      setStatus(result
+          ? 'connect to spotify successful'
+          : 'connect to spotify failed');
+      setState(() {
+        _loading = false;
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _loading = false;
+      });
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setState(() {
+        _loading = false;
+      });
+      setStatus('not implemented');
+    }
+  }
+
+  Future<String> getAuthenticationToken() async {
+    try {
+      var authenticationToken = await SpotifySdk.getAuthenticationToken(
+          clientId: dotenv.env['CLIENT_ID'].toString(),
+          redirectUrl: dotenv.env['REDIRECT_URL'].toString(),
+          scope: 'app-remote-control, '
+              'user-modify-playback-state, '
+              'playlist-read-private, '
+              'playlist-modify-public,user-read-currently-playing');
+      setStatus('Got a token: $authenticationToken');
+      return authenticationToken;
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+      return Future.error('$e.code: $e.message');
+    } on MissingPluginException {
+      setStatus('not implemented');
+      return Future.error('not implemented');
+    }
+  }
+
+  Future getPlayerState() async {
+    try {
+      return await SpotifySdk.getPlayerState();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future getCrossfadeState() async {
+    try {
+      var crossfadeStateValue = await SpotifySdk.getCrossFadeState();
+      setState(() {
+        crossfadeState = crossfadeStateValue;
+      });
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> queue() async {
+    try {
+      await SpotifySdk.queue(
+          spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m');
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> toggleRepeat() async {
+    try {
+      await SpotifySdk.toggleRepeat();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> setRepeatMode(RepeatMode repeatMode) async {
+    try {
+      await SpotifySdk.setRepeatMode(
+        repeatMode: repeatMode,
+      );
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> setShuffle(bool shuffle) async {
+    try {
+      await SpotifySdk.setShuffle(
+        shuffle: shuffle,
+      );
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> toggleShuffle() async {
+    try {
+      await SpotifySdk.toggleShuffle();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> play() async {
+    try {
+      await SpotifySdk.play(spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m');
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> pause() async {
+    try {
+      await SpotifySdk.pause();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> resume() async {
+    try {
+      await SpotifySdk.resume();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> skipNext() async {
+    try {
+      //move to cache - local state object - syncing; firebase
+      await SpotifySdk.skipNext();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> skipPrevious() async {
+    try {
+      await SpotifySdk.skipPrevious();
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> seekTo() async {
+    try {
+      await SpotifySdk.seekTo(positionedMilliseconds: 20000);
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> seekToRelative() async {
+    try {
+      await SpotifySdk.seekToRelativePosition(relativeMilliseconds: 20000);
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  Future<void> addToLibrary() async {
+    try {
+      await SpotifySdk.addToLibrary(
+          spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m');
+    } on PlatformException catch (e) {
+      setStatus(e.code, message: e.message);
+    } on MissingPluginException {
+      setStatus('not implemented');
+    }
+  }
+
+  // Future<void> checkIfAppIsActive(BuildContext context) async {
+  //   try {
+  //     var isActive = await SpotifySdk.isSpotifyAppActive;
+  //     final snackBar = SnackBar(
+  //         content: Text(isActive
+  //             ? 'Spotify app connection is active (currently playing)'
+  //             : 'Spotify app connection is not active (currently not playing)'));
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  //   } on PlatformException catch (e) {
+  //     setStatus(e.code, message: e.message);
+  //   } on MissingPluginException {
+  //     setStatus('not implemented');
+  //   }
+  // }
+
+  void setStatus(String code, {String? message}) {
+    var text = message ?? '';
+    _logger.i('$code$text');
+  }
+}
+
+class TrackSlider extends StatefulWidget {
+  TrackSlider({Key? key, required this.value, required this.duration})
+      : super(key: key);
+
+  int value;
+  final int duration;
+
+  @override
+  _TrackSliderState createState() => _TrackSliderState();
+}
+
+class _TrackSliderState extends State<TrackSlider> {
+  Timer? timer;
+  int cur = 0;
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(
+        const Duration(seconds: 1),
+        (Timer t) => setState(() {
+              widget.value = 1000 + widget.value;
+            }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Slider(
+      value: widget.value / 1000, //playerState.playbackPosition.toDouble(),
+      onChanged: (double newValue) {
+        // SpotifySdk.seekTo(newValue.toInteger());
+        // setState(() {
+        //   widget.value = widget.value+1.0;
+        // });
+        debugPrint('seeking');
+      },
+      min: 0.0,
+      max: widget.duration / 1000,
+      divisions: (widget.duration / 1000).round(),
+      // label: playerState.playbackPosition.toString()
+    );
+  }
+}

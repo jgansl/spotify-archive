@@ -1,3 +1,6 @@
 [submodule "spotipy"]
 	path = spotipy
 	url = https://github.com/jessegansler/spotipy
+[submodule "flutter_spotify"]
+	path = app/flutter_spotify
+	url = https://github.com/JesseGansler/flutter_spotify
