@@ -1,3 +1,3 @@
 [submodule "spotipy"]
 	path = spotipy
-	url = https://github.com/JesseGansler/spotipy
+	url = https://github.com/jessegansler/spotipy

@@ -1,0 +1,6 @@
+env/
+.ipynb_checkpoints/
+yarn-error*
+*.log
+*lock*
+node_modules

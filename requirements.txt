@@ -1,2 +1,12 @@
+git+git://github.com/JesseGansler/spotipy #version
+
+flask
+flask_cors
+flask_restplus
 jupyter
-https://github.com/JesseGansler/spotipy
+numpy
+mongoengine
+redis
+pandas
+scikit-learn
+streamlit
