@@ -1,0 +1,2 @@
+jupyter
+https://github.com/JesseGansler/spotipy

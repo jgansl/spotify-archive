@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "spotipy-ext"
+version = "0.1.0"
+description = ""
+authors = ["jesse gansler <jessegansler@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+spotipy = { git = "https://github.com/JesseGansler/spotipy" }
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
