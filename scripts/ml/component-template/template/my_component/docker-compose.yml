@@ -1,0 +1,50 @@
+#https://www.rockyourcode.com/run-streamlit-with-docker-and-docker-compose/
+version: "3"
+services:
+  # db:
+    # image: postgres:12-alpine
+    # environment:
+    #   - POSTGRES_PASSWORD=password
+    # ports:
+    #   - "5432:5432"
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+    # networks:
+    #   - backend
+  python:
+    build: ./
+    # context: ./
+    environment:
+      # - POSTGRES_PASSWORD=password
+      - SANIC_AUTORELOAD=true
+    # volumes:
+    #   - ./backend:/srv/app
+    ports:
+      # - "8000:8000"
+      - "8502:8501"
+    depends_on:
+      - frontend
+    #   db:
+    #     condition: service_healthy
+    networks:
+      # - backend
+      - frontend
+  frontend:
+    build: ./frontend
+      # context: ./frontend
+      # args:
+      #   NODE_ENV: "development"
+    # volumes:
+    #   - ./frontend:/srv/app
+    ports:
+      - "3001:3001"
+    networks:
+      - frontend
+    stdin_open: true
+
+networks:
+  # backend:
+  frontend:

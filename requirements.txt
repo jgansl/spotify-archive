@@ -1,12 +1,25 @@
 git+git://github.com/JesseGansler/spotipy #version
+#pip install -e .
 
+bamboo
+bokeh
 flask
 flask_cors
 flask_restplus
+# freezegun
+ipython
 jupyter
-numpy
+kneed
+matplotlib 
 mongoengine
+numpy 
 redis
 pandas
+pydash
+python-dotenv
 scikit-learn
+seaborn 
+# spotipy
 streamlit
+streamlit-autorefresh
+supabase#-py

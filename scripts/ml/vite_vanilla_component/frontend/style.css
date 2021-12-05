@@ -1,0 +1,24 @@
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50; 
+  /* reset.css*/
+}
+
+body {
+  margin: 0;
+}
+
+
+button {
+  border-radius: 3px;
+  color: #fff;
+  background: purple;
+  padding: 8px 12px;
+  border: none !important;
+  outline: none !important;
+  border: 1px solid var(--primary-color);
+  outline: 1px solid var(--primary-color);
+}
