@@ -11,11 +11,17 @@ from pydash import flatten
 from time import sleep
 
 #improve how to analyze anad categorize autdio - dividing sounds - sound calassification organiation ml
+# track number
+class Track(): #Document):
+   # sid: String = StringField()
+   # genrenum: Int = IntField() #classification vs personal mix
+
+   name = ""
 
 sp_plst = [] #auto - iheart
 
 # add songs to new / Release - daily, radio
-def newRelease():
+def newRelease(): # scan for new/unfollowed artists only and egt top tracks/popular
    radio_mixes = [p for p in plst if 'Radio' in p['name']]
    daily_mixes = []
 
@@ -222,7 +228,7 @@ class Personal(object):
    def get_track_ids(self, p):
       return [t['track']['id'] for t in self.retrieve(TRACK, pid=p['id'])]
 
-   def diff(self, a, b):
+   def prcs(self, a, b):
       if a == SAVED:
          a = self.sids
       elif type(a) == str: #! assume id..or NAME
@@ -237,11 +243,13 @@ class Personal(object):
       elif type(b) == dict: #! assume id..or NAME
          b = self.get_track_ids(b)
       #lse list of track_ids
-
+      return a, b
+   def diff(self, a, b):
+      a, b = self.prcs(a,b)
       return list(set(a) - set(b))
-   
    def intersect(self, a, b):
-      return
+      a, b = self.prcs(a,b)
+      return list(set(a).intersection(set(b)))
 
 if __name__ == '__main__':
    mem = Personal(sp)
@@ -257,9 +265,17 @@ if __name__ == '__main__':
    # back up saved
    dst = pnm('Music')
    mov(None, dst['id'], dif(SAVED, dst))
-   #remove nostalgia from music
+   
+   #remove nostalgia/memoreis from music
+   
+   #! memories
+   src = dst
+   dst = pnm('Nostalgia')
+   mov(src, dst['id'], ints(src, dst))
 
    # remove eprsonal from saved
+
+   # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
 
    #exec spotipy web client nodejs - listen -> app
 
