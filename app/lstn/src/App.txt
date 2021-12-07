@@ -1,0 +1,150 @@
+import { useEffect, useState, useMemo, useRef } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import WebPlayback from "./components/playback";
+
+//https://developer.spotify.com/documentation/web-playback-sdk/guide/#source-code
+// import { Helmet } from "react-helmet";
+
+//https://github.com/gilbarbara/react-spotify-web-playback
+// import SpotifyPlayer from 'react-spotify-web-playback';
+
+// <SpotifyPlayer
+//   token="BQBAipVGcMIHB2Kg7vbkecSQdZH_ybefSTsCM1Fk3moqyi6c7Bg_HQ3SGLydN6Hl4NNQttzOTt4ylLOSAcgKIxj1BFeylFKFl-WWhy0tq0YyAjFXyWgelS7lvVDvSVCMAhqNGkh2Ui0zCDu7BFQJotD6KA98fNw3Dt97ReseU8iIyVKHPTrPG1HFL5NPqKVXv7n8r09wfNLIs0RE9WMTW7Wcs5tiRvjOa1Z33NqK9W-pjmxafT8XVCoKK3a1aQLwUpZyaA4z4xkEQQUj72GRB13GfMbVqnU6m10I7g1ZC-S8U-lyJk0T"
+//   uris={['spotify:artist:6HQYnRM4OzToCYPpVBInuU']}
+// />;
+
+interface StrInputProps {
+  device_id?: string;
+  message?: string;
+}
+
+function App() {
+  const [count, setCount] = useState(0);
+  const [player, setPlayer] = useState(undefined);
+
+  useEffect(() => {
+    //ready event is not fired when using SDK on http site - https://github.com/spotify/web-playback-sdk/issues/38
+    //https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
+    // localhost is consider secure?
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+    document.body.appendChild(script);
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token =
+        "BQBocCFCnm2s_zfHWNt3_66nEyML56IdNwwqkw01-Wt9TMpJ1wpXMsh2E0YquT8KQXzkfGVVxylnrwyhTVe60RSaFFzk8vPyb0blEhDUHzuzwheVdIrATyeb_6KCSNMeFjEN2PhVtjPnsrnEoUREFLGFFpYRgayyj_6HHYUkW8bAcKZ8D2q7lMvoyYcnZ27HpK6vR1lF9PEyBmak4He2_W8wFhcfwiRMIq8lMKLUF87l1JB_1yU-RwiIWSjgNZAViE-sRUR7E3MBk-ixHGuw13x9cDxhn87Kzwz2JLA_vCh6o5M3j1LS";
+      const player = new Spotify.Player({
+        name: "Web Playback SDK Quick Start Player",
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: 0.5,
+      });
+
+      // Ready - talk to falsk api about state (websocket.io)
+      player.addListener("ready", ({ device_id }) => {
+        console.log("Ready with Device ID", device_id);
+      });
+
+      // Not Ready
+      player.addListener("not_ready", ({ device_id }) => {
+        console.log("Device ID has gone offline", device_id);
+      });
+
+      player.addListener("initialization_error", ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener("authentication_error", ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener("account_error", ({ message }) => {
+        console.error(message);
+      });
+
+      document.getElementById("togglePlay")!.onclick = function () {
+        player.togglePlay();
+        player.getCurrentState().then((state: object) => {
+          if (!state) {
+            console.error(
+              "User is not playing music through the Web Playback SDK"
+            );
+            return;
+          }
+
+          var current_track = state.track_window.current_track;
+          var next_track = state.track_window.next_tracks[0];
+
+          console.log("Currently Playing", current_track);
+          console.log("Playing Next", next_track);
+          setCurrent(current_track);
+        });
+      };
+
+      player.connect(); //https://developer.spotify.com/documentation/web-playback-sdk/reference/
+      //send play - device
+
+      // fetch("https://api.spotify.com/v1/me/player", {
+      //   method: "put",
+      //   headers: {
+      //     Authorization: "Bearer " + token,
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     device_ids: ["4ee8c7a186f5a90f5b9f409ec7ac472cc78b1835"],
+      //   }),
+      // });
+      // fetch("https://api.spotify.com/v1/me/player/devices", {
+      //   headers: {
+      //     Authorization: "Bearer " + token,
+      //     "Content-Type": "application/json",
+      //   },
+      // })
+      //   .then((res) => res.json())
+      //   .then((res) => console.log(res));
+    };
+  }, []);
+  const countRef = useRef(0);
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>Hello Vite + React!</p>
+        <p>
+          <button type="button" onClick={() => setCount((count) => count + 1)}>
+            count is: {count}
+          </button>
+        </p>
+        <p>
+          Edit <code>App.tsx</code> and save to test HMR updates.
+        </p>
+        {current && <img src={current.album.images[0].url} />}
+        <p>
+          <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn React
+          </a>
+          {" | "}
+          <a
+            className="App-link"
+            href="https://vitejs.dev/guide/features.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Vite Docs
+          </a>
+          <button id="togglePlay">Play/Pause</button>
+        </p>
+      </header>
+    </div>
+  );
+}
+
+export default App;

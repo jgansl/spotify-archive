@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button id="togglePlay">Toggle Play</button>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+      //ready event is not fired when using SDK on http site - https://github.com/spotify/web-playback-sdk/issues/38
+      //https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
+      // localhost is consider secure?
+
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        const token =
+          "BQB43sVACNO3Z9sluI61CA_u1HZeyAq5fIgDtQJQG2G0UhZDgl8qhg82Ha7qpTkD0UZiDpjhtTaaUAhRIJA22LKGAC8Wlsi86wjndoXp0nrbCRrRjEAOM_57bprh2nZVCQ0qr1T9p_zc6uIlOspSLPLvv4ybhXomjObxoSopqBV2R9WajavvWvzYMfrvC28S_IfAkuy6r45zDajjZmMdesO-jv2rZqj0PvZPdLzNxWkqA8R2hCsb0AA8guuwkoXkWHHQwx_plyl96Mc2TaXEtZBy9VYPZ8bnq25M9fuX3khxiATuGqB3";
+        const player = new Spotify.Player({
+          name: "Web Playback SDK Quick Start Player",
+          getOAuthToken: (cb) => {
+            cb(token);
+          },
+          volume: 0.5,
+        });
+
+        // Ready - talk to falsk api about state (websocket.io)
+        player.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+        });
+
+        // Not Ready
+        player.addListener("not_ready", ({ device_id }) => {
+          console.log("Device ID has gone offline", device_id);
+        });
+
+        player.addListener("initialization_error", ({ message }) => {
+          console.error(message);
+        });
+
+        player.addListener("authentication_error", ({ message }) => {
+          console.error(message);
+        });
+
+        player.addListener("account_error", ({ message }) => {
+          console.error(message);
+        });
+
+        document.getElementById("togglePlay").onclick = function () {
+          player.togglePlay();
+          player.getCurrentState().then((state) => {
+            if (!state) {
+              console.error(
+                "User is not playing music through the Web Playback SDK"
+              );
+              return;
+            }
+
+            var current_track = state.track_window.current_track;
+            var next_track = state.track_window.next_tracks[0];
+
+            console.log("Currently Playing", current_track);
+            console.log("Playing Next", next_track);
+          });
+        };
+
+        player.connect(); //https://developer.spotify.com/documentation/web-playback-sdk/reference/
+        //send play - device
+      };
+    </script>
+  </body>
+</html>

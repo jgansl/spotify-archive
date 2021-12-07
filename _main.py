@@ -21,6 +21,7 @@ class Track(): #Document):
 sp_plst = [] #auto - iheart
 
 # add songs to new / Release - daily, radio
+# https://open.spotify.com/user/tgansler?si=927f5c58f631429d
 def newRelease(): # scan for new/unfollowed artists only and egt top tracks/popular
    radio_mixes = [p for p in plst if 'Radio' in p['name']]
    daily_mixes = []
@@ -271,7 +272,7 @@ if __name__ == '__main__':
    #! memories
    src = dst
    dst = pnm('Nostalgia')
-   mov(src, dst['id'], ints(src, dst))
+   mov(src['id'], dst['id'], ints(src, dst))
 
    # remove eprsonal from saved
 
@@ -283,3 +284,9 @@ if __name__ == '__main__':
    # move artcolls - from new/release
 
    # patch - remove year from music
+   
+   # app for user data
+
+   # auto number outlier resolver
+
+   #
