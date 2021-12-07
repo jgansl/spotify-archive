@@ -1,5 +1,6 @@
-git+git://github.com/JesseGansler/spotipy #version
-#pip install -e .
+#git+git://github.com/JesseGansler/spotipy #version
+
+#! pip install -e ./spotify/.
 
 bamboo
 bokeh
@@ -22,4 +23,5 @@ seaborn
 # spotipy
 streamlit
 streamlit-autorefresh
-supabase#-py
+supabase
+#-py

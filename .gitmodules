@@ -1,12 +1,18 @@
 [submodule "spotipy"]
 	path = spotipy
-	url = https://github.com/jessegansler/spotipy
+	url = https://github.com/jgansl/spotipy
 [submodule "flutter_spotify"]
 	path = app/flutter_spotify
-	url = https://github.com/JesseGansler/flutter_spotify
+	url = https://github.com/jgansl/awesome-resources-pro
+[submodule "flutter_spotify"]
+	path = app/spotify-rn
+	url = https://github.com/jgansl/flutter_spotify
 [submodule "supabase-py"]
 	path = supabase-py
 	url = https://github.com/supabase-community/supabase-py
+[submodule "spotify-drag"]
+	path = spotify-drag
+	url = https://github.com/jgansl/spoitfy-drag
 [submodule "spotify-extended"]
 	path = spotify-extended
 	url = https://github.com/jgansl/spotify-extended.git

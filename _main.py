@@ -24,7 +24,12 @@ sp_plst = [] #auto - iheart
 # https://open.spotify.com/user/tgansler?si=927f5c58f631429d
 def newRelease(): # scan for new/unfollowed artists only and egt top tracks/popular
    radio_mixes = [p for p in plst if 'Radio' in p['name']]
+   for p in radio_mixes:
+      print(p['name'])
    daily_mixes = []
+
+   #cache -> supabase
+
 
 def yt(): #sync
    return
@@ -274,6 +279,9 @@ if __name__ == '__main__':
    dst = pnm('Nostalgia')
    mov(src['id'], dst['id'], ints(src, dst))
 
+
+   newRelease()
+   
    # remove eprsonal from saved
 
    # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
