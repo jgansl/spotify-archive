@@ -293,15 +293,9 @@ if __name__ == '__main__':
    #remove nostalgia/memoreis from music
    
    #! memories
-<<<<<<< HEAD
-   # src = dst
-   # dst = pnm('Nostalgia')
-   # mov(src['id'], dst['id'], ints(src, dst))
-=======
    src = dst
    dst = pnm('Nostalgia')
    mov(src['id'], dst['id'], ints(src, dst))
->>>>>>> f6992d87265cda928ee691fdf9f9b33d8064598d
 
 
    newRelease()
