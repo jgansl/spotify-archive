@@ -307,26 +307,27 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    cplst = pnm('Cache')
    newr = pnm('New / Release')
    coll = set()
-   # for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
-   #    nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
-   #    ref = pnm(nm)
-   #    # if (ref):
-   #    #    sp.current_user_unfollow_playlist(ref['id'])
-   #    # continue
-   #    # sleep(1)
-   #    # ref = pnm(p['name'].replace('Mix', 'Collection'))
-   #    lst = dif(p, ref)
-   #    # if ref['name'] ==  'Funk Collection':
-   #    #    continue
-   #    # mov(None, ref['id'], lst)
-   #    mov(cache['id'], ref['id'], lst)
-   #    mov(cplst['id'], None, lst)
-   #    mov(newr['id'], None, lst)
-   #    # input('Continue? ' + str(len(lst)))
-   #    print(nm, len(lst))
-   #    coll.update(mem.get_track_ids(ref))
-   #    sleep(3)
-   # # exit()
+   for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
+      nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
+      ref = pnm(nm)
+      # if (ref):
+      #    sp.current_user_unfollow_playlist(ref['id'])
+      # continue
+      # sleep(1)
+      # ref = pnm(p['name'].replace('Mix', 'Collection'))
+      lst = dif(p, ref)
+      # if ref['name'] ==  'Funk Collection':
+      #    continue
+      # mov(None, ref['id'], lst)
+      mov(cache['id'], ref['id'], lst)
+      mov(cplst['id'], None, lst)
+      mov(newr['id'], None, lst)
+      # input('Continue? ' + str(len(lst)))
+      print(nm, len(lst))
+      coll.update(mem.get_track_ids(ref))
+      sleep(3)
+   # exit()
+   #! e.submit below all
    coll.update(mem.sids)
    coll.update(mem.get_track_ids(cache))
    coll.update(mem.get_track_ids(cplst))
