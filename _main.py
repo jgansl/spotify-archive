@@ -334,7 +334,11 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    coll.update(mem.get_track_ids(cache))
    coll.update(mem.get_track_ids(cplst))
    coll.update(mem.get_track_ids(newr))
-   coll.update(mem.get_track_ids(pnm('Nostalgia')))
+   for p in [
+      'Nostalgia',
+      'Untracked',
+   ]:
+      coll.update(mem.get_track_ids(pnm(p)))
    #! mixes / radio # pack remove tracks
    for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
       lst = mem.get_track_ids(p)
