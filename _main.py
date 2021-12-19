@@ -281,6 +281,7 @@ class Personal(object):
       a, b = self.prcs(a,b)
       return list(set(a).intersection(set(b)))
 
+#! split up into periodic tasks thoughout the days
 if __name__ == '__main__': #!! how are songs recommended by playlist content?
    
    mem = Personal(sp)
