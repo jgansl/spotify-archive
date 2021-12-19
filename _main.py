@@ -295,86 +295,102 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    tds = lambda lst: [t['track']['id'] for t in lst] #! none
    # playlists = sp.retrieve(PLAYLIST)
 
-   # back up saved
-   dst = pnm('Music')
-   # mov(None, dst['id'], dif(SAVED, dst))
-   
-   #remove nostalgia/memoreis from music
-   
-   #! memories
-   src = dst
-   dst = pnm('Nostalgia')
-   mov(src['id'], dst['id'], ints(src, dst))
-   cache = pnm('Cached - Auto Remove')
-   cplst = pnm('Cache')
-   newr = pnm('New / Release')
-   coll = set()
-   for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
-      nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
-      ref = pnm(nm)
-      # if (ref):
-      #    sp.current_user_unfollow_playlist(ref['id'])
-      # continue
-      # sleep(1)
-      # ref = pnm(p['name'].replace('Mix', 'Collection'))
-      lst = dif(p, ref)
-      # if ref['name'] ==  'Funk Collection':
-      #    continue
-      # mov(None, ref['id'], lst)
-      mov(cache['id'], ref['id'], lst)
-      mov(cplst['id'], None, lst)
-      mov(newr['id'], None, lst)
-      # input('Continue? ' + str(len(lst)))
-      print(nm, len(lst))
-      coll.update(mem.get_track_ids(ref))
-      sleep(3)
-   # exit()
-   #! e.submit below all
-   coll.update(mem.sids)
-   coll.update(mem.get_track_ids(cache))
-   coll.update(mem.get_track_ids(cplst))
-   coll.update(mem.get_track_ids(newr))
-   for p in [
-      'Nostalgia',
-      'Untracked',
-   ]:
-      coll.update(mem.get_track_ids(pnm(p)))
-   #! mixes / radio # pack remove tracks
-   for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
-      lst = mem.get_track_ids(p)
-      # mov(None, newr['id'], dif(coll, lst)) #! ? keep separate
-      ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
-      sleep(2)
-      # mov(None, pnm(re.sub('Mix', 'New', p['name']))['id], dif(coll, lst)) #! ? keep separate
 
-      #! move old to cache - double
-      try:
-         sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
-      except:
-         #move new into cache/ new/release/liked -> if in new release and not saved remove coll ^
-         print('Err for DM' + str(i))
-         pass
-   # ref = pnm('Cached - Auto Remove')
-   # prev = mem.get_track_ids(ref)[:25] #!
-   # mov(ref['id'], SAVED, mem.get_track_ids(ref)[:25])
+   patch = True
+   if patch:
+      #! remove genre from untracked
+      #! remove form cache
+      #!
+      mov(None, pname('tmp')['id'], mem.sids)
+      pass
+   else:
+
+      # back up saved
+      dst = pnm('untracked')
+      mov(None, dst['id'], dif(SAVED, dst))
+      
+      #remove nostalgia/memoreis from music
+      
+      #! memories
+      src = pnm('Music')
+      dst = pnm('Nostalgia')
+      mov(src['id'], dst['id'], ints(src, dst))
+      src = pnm('Untracked')
+      dst = pnm('Nostalgia')
+      mov(src['id'], dst['id'], ints(src, dst))
+      cache = pnm('Cached - Auto Remove')
+      cplst = pnm('Cache')
+      newr = pnm('New / Release')
+      coll = set()
+      for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
+         nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
+         ref = pnm(nm)
+         # if (ref):
+         #    sp.current_user_unfollow_playlist(ref['id'])
+         # continue
+         # sleep(1)
+         # ref = pnm(p['name'].replace('Mix', 'Collection'))
+         lst = dif(p, ref)
+         # if ref['name'] ==  'Funk Collection':
+         #    continue
+         # mov(None, ref['id'], lst)
+         mov(cache['id'], ref['id'], lst)
+         mov(cplst['id'], None, lst)
+         mov(newr['id'], None, lst)
+         # input('Continue? ' + str(len(lst)))
+         print(nm, len(lst))
+         coll.update(mem.get_track_ids(ref))
+         sleep(3)
+      # exit()
+      #! e.submit below all
+      coll.update(mem.sids)
+      coll.update(mem.get_track_ids(cache))
+      coll.update(mem.get_track_ids(cplst))
+      coll.update(mem.get_track_ids(newr))
+      for p in [
+         'Nostalgia',
+         'Music',
+         'Untracked',
+      ]:
+         coll.update(mem.get_track_ids(pnm(p)))
+         #! start radio from liekd song - untrack and 
+      #! mixes / radio # pack remove tracks#! add song to artsit explored to auto pull in artists tracks - radio
+      #! add remaining to new/release hidden - how to tell?#! spotify hide/untracked
+      for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
+         lst = mem.get_track_ids(p)
+         # mov(None, newr['id'], dif(coll, lst)) #! ? keep separate
+         ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
+         sleep(2)
+         # mov(None, pnm(re.sub('Mix', 'New', p['name']))['id], dif(coll, lst)) #! ? keep separate
+
+         #! move old to cache - double
+         try:
+            sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
+         except:
+            #move new into cache/ new/release/liked -> if in new release and not saved remove coll ^
+            print('Err for DM' + str(i))
+            pass
+      # ref = pnm('Cached - Auto Remove')
+      # prev = mem.get_track_ids(ref)[:25] #!
+      # mov(ref['id'], SAVED, mem.get_track_ids(ref)[:25])
 
 
 
-   # newRelease()
-   
-   # remove eprsonal from saved
+      # newRelease()
+      
+      # remove eprsonal from saved
 
-   # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
+      # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
 
-   #exec spotipy web client nodejs - listen -> app
+      #exec spotipy web client nodejs - listen -> app
 
-   # troy playlsits
-   # move artcolls - from new/release
+      # troy playlsits
+      # move artcolls - from new/release
 
-   # patch - remove year from music
-   
-   # app for user data
+      # patch - remove year from music
+      
+      # app for user data
 
-   # auto number outlier resolver
+      # auto number outlier resolver
 
-   #
+      #
