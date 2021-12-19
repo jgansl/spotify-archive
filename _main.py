@@ -9,6 +9,7 @@ from json import load, dump, dumps
 from os import getenv, system
 from pydash import flatten
 from time import sleep
+import re #! reduce dep
 
 #improve how to analyze anad categorize autdio - dividing sounds - sound calassification organiation ml
 # track number
@@ -115,13 +116,13 @@ class Personal(object):
                del t['track']['available_markets']
             except: pass
          return res
-      # elif typ.upper().strip() == ARTIST_ALBUMS:  # multiple artiusts?
+      # elif typ.lower().strip() == ARTIST_ALBUMS:  # multiple artiusts?
       #    pass
    
    def move(self, src, dst, items=[], owned=True, limit=50):
       def parallel(src, dst, items=[], owned=True):
          if dst:
-            if dst.upper() == SAVED:
+            if dst.lower() == SAVED:
                try:
                   snpsht = sp.current_user_saved_tracks_add(tracks=items)
                except SpotifyException:
@@ -156,7 +157,7 @@ class Personal(object):
 
          # src removal
          if src:
-            if src.upper() == SAVED:
+            if src.lower() == SAVED:
                snpsht = sp.current_user_saved_tracks_delete(tracks=items)
             elif src:
                if owned:
@@ -168,10 +169,14 @@ class Personal(object):
                   if snpsht:
                      print("REMOVE", snpsht)
          return
-
-      if src and SAVED in src.upper():
+      #! AttributeError: 'dict' object has no attribute 'lower' -> ID, check if dict
+      if type(src) == 'dict':
+         src = src['id']
+      if type(dst) == 'dict':
+         dst = dst['id']
+      if src and SAVED in src.lower():
          src = SAVED
-      if dst and SAVED in dst.upper():
+      if dst and SAVED in dst.lower():
          dst = SAVED
       # jprint(items)
       if not len(items):
@@ -182,10 +187,12 @@ class Personal(object):
 
       for i in range(reqs):
          print("Submitted", str(i))
-         executor.submit(parallel, src, dst,
-                           items[i * 50: i * 50 + 50], owned=owned)
-      executor.submit(parallel, src, dst,
-                     items[reqs * 50: len(items)], owned=owned)
+         # executor.submit(parallel, src, dst,
+         #                   items[i * 50: i * 50 + 50], owned=owned)
+         parallel(src, dst, items[i * 50: i * 50 + 50], owned=owned)
+      # executor.submit(parallel, src, dst,
+      #                items[reqs * 50: len(items)], owned=owned)
+      parallel(src, dst, items[reqs * 50: len(items)], owned=owned)
       return 
    
    def tids(self, tdicts: list) -> list:
@@ -223,11 +230,11 @@ class Personal(object):
       # elif not refreshed:
       #     playlists = retrieve(PLAYLIST)
       #     return pname(name, refreshed=True)
-      else:
-
+      elif create:
+         print('Creating')
          res = sp.user_playlist_create(usr, name, public=False, collaborative=False, description=description)
-         while res['name'] not in [p['name'] for p in playlists]:
-               playlists = self.retrieve(PLAYLIST)
+         while res['name'] not in [p['name'] for p in self.playlists]:
+               self.playlists = self.retrieve(PLAYLIST)
                sleep(2)        
          return res
    
@@ -257,7 +264,8 @@ class Personal(object):
       a, b = self.prcs(a,b)
       return list(set(a).intersection(set(b)))
 
-if __name__ == '__main__':
+if __name__ == '__main__': #!! how are songs recommended by playlist content?
+   
    mem = Personal(sp)
    ret = mem.retrieve
    mov = mem.move
@@ -270,7 +278,7 @@ if __name__ == '__main__':
 
    # back up saved
    dst = pnm('Music')
-   mov(None, dst['id'], dif(SAVED, dst))
+   # mov(None, dst['id'], dif(SAVED, dst))
    
    #remove nostalgia/memoreis from music
    
@@ -278,9 +286,57 @@ if __name__ == '__main__':
    src = dst
    dst = pnm('Nostalgia')
    mov(src['id'], dst['id'], ints(src, dst))
+   cache = pnm('Cached - Auto Remove')
+   cplst = pnm('Cache')
+   newr = pnm('New / Release')
+   coll = set()
+   # for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
+   #    nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
+   #    ref = pnm(nm)
+   #    # if (ref):
+   #    #    sp.current_user_unfollow_playlist(ref['id'])
+   #    # continue
+   #    # sleep(1)
+   #    # ref = pnm(p['name'].replace('Mix', 'Collection'))
+   #    lst = dif(p, ref)
+   #    # if ref['name'] ==  'Funk Collection':
+   #    #    continue
+   #    # mov(None, ref['id'], lst)
+   #    mov(cache['id'], ref['id'], lst)
+   #    mov(cplst['id'], None, lst)
+   #    mov(newr['id'], None, lst)
+   #    # input('Continue? ' + str(len(lst)))
+   #    print(nm, len(lst))
+   #    coll.update(mem.get_track_ids(ref))
+   #    sleep(3)
+   # # exit()
+   coll.update(mem.sids)
+   coll.update(mem.get_track_ids(cache))
+   coll.update(mem.get_track_ids(cplst))
+   coll.update(mem.get_track_ids(newr))
+   coll.update(mem.get_track_ids(pnm('Nostalgia')))
+   #! mixes / radio # pack remove tracks
+   for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
+      lst = mem.get_track_ids(p)
+      # mov(None, newr['id'], dif(coll, lst)) #! ? keep separate
+      ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
+      sleep(2)
+      # mov(None, pnm(re.sub('Mix', 'New', p['name']))['id], dif(coll, lst)) #! ? keep separate
+
+      #! move old to cache - double
+      try:
+         sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
+      except:
+         #move new into cache/ new/release/liked -> if in new release and not saved remove coll ^
+         print('Err for DM' + str(i))
+         pass
+   # ref = pnm('Cached - Auto Remove')
+   # prev = mem.get_track_ids(ref)[:25] #!
+   # mov(ref['id'], SAVED, mem.get_track_ids(ref)[:25])
 
 
-   newRelease()
+
+   # newRelease()
    
    # remove eprsonal from saved
 
