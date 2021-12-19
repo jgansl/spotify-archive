@@ -9,7 +9,13 @@ from json import load, dump, dumps
 from os import getenv, system
 from pydash import flatten
 from time import sleep
+<<<<<<< HEAD
 import re #! reduce dep
+=======
+import json
+
+jprint = lambda x: print(json.dumps(x,indent=2))
+>>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
 
 #improve how to analyze anad categorize autdio - dividing sounds - sound calassification organiation ml
 # track number
@@ -25,9 +31,21 @@ sp_plst = [] #auto - iheart
 # https://open.spotify.com/user/tgansler?si=927f5c58f631429d
 def newRelease(): # scan for new/unfollowed artists only and egt top tracks/popular
    radio_mixes = [p for p in plst if 'Radio' in p['name']]
-   for p in radio_mixes:
-      print(p['name'])
-   daily_mixes = []
+   # coll = set(mem.sids)
+   # coll.update(mem.get_track_ids(mem.pname('Cache')))
+   pcach = mem.pname('Cached')
+   cach=mem.get_track_ids(pcach)
+   daily_mixes = [p for p in plst if 'Daily Mix' in p['name'][:9]]
+   for p in flatten([radio_mixes, daily_mixes]): # thread?
+      #get diff tracks
+      # 
+      # print(len(mem.get_track_ids(p)))
+      # print(len(cach))
+      lst = mem.diff(mem.get_track_ids(p), cach)
+      print(p['name'], len(lst))
+      mem.move(None, 'SAVED', lst)
+      mem.move(None, pcach['id'], lst)
+      cach=mem.get_track_ids(mem.pname('Cached'))
 
    #cache -> supabase
 
@@ -121,6 +139,7 @@ class Personal(object):
    
    def move(self, src, dst, items=[], owned=True, limit=50):
       def parallel(src, dst, items=[], owned=True):
+         # print(dst)
          if dst:
             if dst.lower() == SAVED:
                try:
@@ -169,6 +188,7 @@ class Personal(object):
                   if snpsht:
                      print("REMOVE", snpsht)
          return
+<<<<<<< HEAD
       #! AttributeError: 'dict' object has no attribute 'lower' -> ID, check if dict
       if type(src) == 'dict':
          src = src['id']
@@ -177,10 +197,18 @@ class Personal(object):
       if src and SAVED in src.lower():
          src = SAVED
       if dst and SAVED in dst.lower():
+=======
+
+      if src and SAVED in src.lower():
+         src = SAVED
+      if dst and SAVED in dst.lower():
+         # print(SAVED)
+>>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
          dst = SAVED
       # jprint(items)
       if not len(items):
          return
+
       executor = ThreadPoolExecutor(max_workers=7)
       reqs = len(items) // limit
       # print(reqs)
@@ -277,12 +305,17 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    # playlists = sp.retrieve(PLAYLIST)
 
    # back up saved
+<<<<<<< HEAD
    dst = pnm('Music')
+=======
+   # dst = pnm('Music')
+>>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
    # mov(None, dst['id'], dif(SAVED, dst))
    
    #remove nostalgia/memoreis from music
    
    #! memories
+<<<<<<< HEAD
    src = dst
    dst = pnm('Nostalgia')
    mov(src['id'], dst['id'], ints(src, dst))
@@ -338,6 +371,15 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
 
    # newRelease()
    
+=======
+   # src = dst
+   # dst = pnm('Nostalgia')
+   # mov(src['id'], dst['id'], ints(src, dst))
+
+
+   newRelease()
+
+>>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
    # remove eprsonal from saved
 
    # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
