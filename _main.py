@@ -9,13 +9,10 @@ from json import load, dump, dumps
 from os import getenv, system
 from pydash import flatten
 from time import sleep
-<<<<<<< HEAD
 import re #! reduce dep
-=======
 import json
 
 jprint = lambda x: print(json.dumps(x,indent=2))
->>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
 
 #improve how to analyze anad categorize autdio - dividing sounds - sound calassification organiation ml
 # track number
@@ -188,7 +185,6 @@ class Personal(object):
                   if snpsht:
                      print("REMOVE", snpsht)
          return
-<<<<<<< HEAD
       #! AttributeError: 'dict' object has no attribute 'lower' -> ID, check if dict
       if type(src) == 'dict':
          src = src['id']
@@ -197,13 +193,6 @@ class Personal(object):
       if src and SAVED in src.lower():
          src = SAVED
       if dst and SAVED in dst.lower():
-=======
-
-      if src and SAVED in src.lower():
-         src = SAVED
-      if dst and SAVED in dst.lower():
-         # print(SAVED)
->>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
          dst = SAVED
       # jprint(items)
       if not len(items):
@@ -305,17 +294,12 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    # playlists = sp.retrieve(PLAYLIST)
 
    # back up saved
-<<<<<<< HEAD
    dst = pnm('Music')
-=======
-   # dst = pnm('Music')
->>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
    # mov(None, dst['id'], dif(SAVED, dst))
    
    #remove nostalgia/memoreis from music
    
    #! memories
-<<<<<<< HEAD
    src = dst
    dst = pnm('Nostalgia')
    mov(src['id'], dst['id'], ints(src, dst))
@@ -371,15 +355,6 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
 
    # newRelease()
    
-=======
-   # src = dst
-   # dst = pnm('Nostalgia')
-   # mov(src['id'], dst['id'], ints(src, dst))
-
-
-   newRelease()
-
->>>>>>> 2314c5b81043483c30f7507cb25596902e935f53
    # remove eprsonal from saved
 
    # remove genre ?  from savedmusic -> liked playlists -> add liked to general/cache
