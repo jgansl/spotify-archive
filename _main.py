@@ -282,6 +282,7 @@ class Personal(object):
       return list(set(a).intersection(set(b)))
 
 #! split up into periodic tasks thoughout the days
+#! check about creating new collection for radio_mix - bliss city
 if __name__ == '__main__': #!! how are songs recommended by playlist content?
    
    mem = Personal(sp)
