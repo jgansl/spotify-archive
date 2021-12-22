@@ -296,17 +296,18 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
    # playlists = sp.retrieve(PLAYLIST)
 
 
-   patch = True
+   patch = False
    if patch:
+      input('Patching?')
       #! remove genre from untracked
-      #! remove form cache
+      #! remove form cache, tmp
       #!
-      mov(None, pname('tmp')['id'], mem.sids)
+      mov(None, pnm('tmp' + str(len(mem.sids)))['id'], mem.sids)
       pass
    else:
 
       # back up saved
-      dst = pnm('untracked')
+      dst = pnm('Untracked')
       mov(None, dst['id'], dif(SAVED, dst))
       
       #remove nostalgia/memoreis from music
@@ -351,11 +352,17 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          'Nostalgia',
          'Music',
          'Untracked',
+         'Calm',
+         '2021 Collection'
       ]:
          coll.update(mem.get_track_ids(pnm(p)))
          #! start radio from liekd song - untrack and 
       #! mixes / radio # pack remove tracks#! add song to artsit explored to auto pull in artists tracks - radio
       #! add remaining to new/release hidden - how to tell?#! spotify hide/untracked
+      for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
+         ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
+         coll.update(mem.get_track_ids(ref))
+         mov(ref['id'], None, ints(ref, coll)) #! personal
       for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
          lst = mem.get_track_ids(p)
          # mov(None, newr['id'], dif(coll, lst)) #! ? keep separate
@@ -366,6 +373,9 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          #! move old to cache - double
          try:
             sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
+            mov(cache['id'], ref['id'], lst)
+            mov(cplst['id'], None, lst)
+            mov(newr['id'], None, lst)
          except:
             #move new into cache/ new/release/liked -> if in new release and not saved remove coll ^
             print('Err for DM' + str(i))
