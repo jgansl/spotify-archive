@@ -407,8 +407,9 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
       #! add remaining to new/release hidden - how to tell?#! spotify hide/untracked
       for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
          ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
-         coll.update(mem.get_track_ids(ref))
-         mov(ref['id'], None, ints(ref, coll)) #! personal
+         trks = mem.get_track_ids(ref)
+         mov(ref['id'], None, ints(trks, coll)) #! personal
+         coll.update(trks)
       for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
          # print(i, p['id'])
          lst = mem.get_track_ids(p)
@@ -420,6 +421,8 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          #! move old to cache - double
          try:
             if len(dif(lst, coll)):
+               #! move to new / Release and replace
+               mov(ref['id'], pnm('New / Release')['id'], mem.get_track_ids(ref)) #added to coll above prev loop
                sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
                mov(cache['id'], ref['id'], lst)
                mov(cplst['id'], None, lst)
