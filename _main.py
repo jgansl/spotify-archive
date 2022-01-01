@@ -182,8 +182,8 @@ class Personal(object):
                      user=usr, playlist_id=src, tracks=items, snapshot_id=None
                   )
                   # sp.user_playlist_remove_tracks(user=usr, playlist_id=lst[i]['pid'], tracks=t)
-                  if snpsht:
-                     print("REMOVE", snpsht)
+                  # if snpsht:
+                  #    print("REMOVE", snpsht)
          return
       #! AttributeError: 'dict' object has no attribute 'lower' -> ID, check if dict
       if type(src) == 'dict':
