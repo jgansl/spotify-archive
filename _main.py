@@ -2,7 +2,7 @@ from spotipy.client import PLAYLIST, SAVED, TRACK#, Personal
 from spotipy.exceptions import SpotifyException
 from _oauth import sp, usr
 
-
+import concurrent
 from math import ceil
 from concurrent.futures import as_completed, ThreadPoolExecutor
 from json import load, dump, dumps
@@ -256,7 +256,15 @@ class Personal(object):
          return res
    
    def get_track_ids(self, p):
-      return [t['track']['id'] for t in self.retrieve(TRACK, pid=p['id'])]
+      try:
+         return [t['track']['id'] for t in self.retrieve(TRACK, pid=p['id'])]
+      except:
+         lst = []
+         for t in self.retrieve(TRACK, pid=p['id']):
+            try: #!
+               lst.append(t['track']['id'])
+            except:
+               pass
 
    def prcs(self, a, b):
       if a == SAVED:
@@ -283,6 +291,10 @@ class Personal(object):
 
 #! split up into periodic tasks thoughout the days
 #! check about creating new collection for radio_mix - bliss city
+#! remove sg from enjoy music
+#! sg caches
+#! remove nostalgia from emmeroies
+
 if __name__ == '__main__': #!! how are songs recommended by playlist content?
    
    mem = Personal(sp)
@@ -302,8 +314,23 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
       #! remove genre from untracked
       #! remove form cache, tmp
       #!
-      mov(None, pnm('tmp' + str(len(mem.sids)))['id'], mem.sids)
-      pass
+      # mov(None, pnm('tmp' + str(len(mem.sids)))['id'], mem.sids)
+
+      # unfollow erroreuos playlist
+      # for i in [
+      #    # old daily mixes
+      #    '37i9dQZF1E35SIWCjaxbHF',
+      #    '37i9dQZF1E34UuF3TsII7q',
+      #    '37i9dQZF1E35G7d2DfpoRy',
+      #    '37i9dQZF1E39o8wOEkYZdI',
+      #    '37i9dQZF1E3adKP3MJpilp',
+      #    '37i9dQZF1E3acQI61k2jN8',
+      # ]:
+      #    print(sp.playlist(i)['owner']['id'])
+      #    sp.current_user_unfollow_playlist(playlist_id=i)
+      #    sp.current_user_follow_playlist(playlist_id=i)
+      #    continue
+      exit()
    else:
 
       # back up saved
@@ -313,7 +340,8 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
       #remove nostalgia/memoreis from music
       
       #! memories
-      src = pnm('Music')
+      mus = pnm('Enjoy Music')
+      src = mus
       dst = pnm('Nostalgia')
       mov(src['id'], dst['id'], ints(src, dst))
       src = pnm('Untracked')
@@ -323,7 +351,10 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
       cplst = pnm('Cache')
       newr = pnm('New / Release')
       coll = set()
-      for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
+
+      #! thread
+      # for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]:
+      def _tradios(p):  
          nm = re.sub('(Mix|Radio)', 'Collection', p['name'])
          ref = pnm(nm)
          # if (ref):
@@ -339,9 +370,22 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          mov(cplst['id'], None, lst)
          mov(newr['id'], None, lst)
          # input('Continue? ' + str(len(lst)))
-         print(nm, len(lst))
+         # print(nm, len(lst))
          coll.update(mem.get_track_ids(ref))
          sleep(3)
+         return (p['name'], len(lst))
+      with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+         # Start the load operations and mark each future with its URL
+         future_to_p = {executor.submit(_tradios, p): p for p in [p for p in mem.playlists if 'Radio' in p['name'] or ('Mix' in p['name'] and 'Daily' not in p['name']) and 'yt' not in p['description']]}
+         for future in concurrent.futures.as_completed(future_to_p):
+            p = future_to_p[future]
+            try:
+                  data = future.result()
+            except Exception as exc:
+                  print('%r generated an exception: %s' % (url, exc))
+            else:
+               # print('%r page is %d bytes' % (url, len(data)))
+               print(data)
       # exit()
       #! e.submit below all
       coll.update(mem.sids)
@@ -350,11 +394,13 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
       coll.update(mem.get_track_ids(newr))
       for p in [
          'Nostalgia',
-         'Music',
+         'Apple Music',
+         'Enjoy Music',
          'Untracked',
-         'Calm',
+         'Calm - Artists, Refine',
          '2021 Collection'
       ]:
+         print(p)
          coll.update(mem.get_track_ids(pnm(p)))
          #! start radio from liekd song - untrack and 
       #! mixes / radio # pack remove tracks#! add song to artsit explored to auto pull in artists tracks - radio
@@ -364,6 +410,7 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          coll.update(mem.get_track_ids(ref))
          mov(ref['id'], None, ints(ref, coll)) #! personal
       for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
+         # print(i, p['id'])
          lst = mem.get_track_ids(p)
          # mov(None, newr['id'], dif(coll, lst)) #! ? keep separate
          ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
@@ -372,10 +419,11 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
 
          #! move old to cache - double
          try:
-            sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
-            mov(cache['id'], ref['id'], lst)
-            mov(cplst['id'], None, lst)
-            mov(newr['id'], None, lst)
+            if len(dif(lst, coll)):
+               sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
+               mov(cache['id'], ref['id'], lst)
+               mov(cplst['id'], None, lst)
+               mov(newr['id'], None, lst)
          except:
             #move new into cache/ new/release/liked -> if in new release and not saved remove coll ^
             print('Err for DM' + str(i))
