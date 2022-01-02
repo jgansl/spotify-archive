@@ -398,13 +398,20 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          'Enjoy Music',
          'Untracked',
          'Calm - Artists, Refine',
-         '2021 Collection'
+         '2021 Collection',
+         'Guitar',
+         'Sing/Play', 
+         # personal tag
       ]:
          print(p)
          coll.update(mem.get_track_ids(pnm(p)))
          #! start radio from liekd song - untrack and 
       #! mixes / radio # pack remove tracks#! add song to artsit explored to auto pull in artists tracks - radio
       #! add remaining to new/release hidden - how to tell?#! spotify hide/untracked
+      #! discover, new music, release -> new / release
+      #! add _ removals from enjoy, cache, new/release, add to coll
+      #! personal; addition channeling removal - i.e. memories from nostaglia, etc.
+      #! integrate folders
       for i, p in enumerate([p for p in mem.playlists if 'Daily Mix' in p['name']]):
          ref = pnm(re.sub('Mix.*', 'New ' + str(i), p['name']))
          trks = mem.get_track_ids(ref)
