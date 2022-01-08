@@ -8,3 +8,4 @@ node_modules
 .lsp
 .clj-kondo
 .env
+out.txt

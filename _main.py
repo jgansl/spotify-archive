@@ -135,6 +135,7 @@ class Personal(object):
       #    pass
    
    def move(self, src, dst, items=[], owned=True, limit=50):
+      print(len(items), 'being moved..')
       def parallel(src, dst, items=[], owned=True):
          # print(dst)
          if dst:
@@ -371,6 +372,7 @@ if __name__ == '__main__': #!! how are songs recommended by playlist content?
          # mov(None, pnm(re.sub('Mix', 'New', p['name']))['id], dif(coll, lst)) #! ? keep separate
 
          #! move old to cache - double
+         coll.update(mem.get_track_ids(ref))
          try:
             sp.user_playlist_add_tracks(usr, ref['id'], dif(lst, coll)) #! ? keep separate
             mov(cache['id'], ref['id'], lst)
